@@ -1,23 +1,24 @@
 package model.services;
 
-import model.entitites.Document;
+import model.entitites.DocumentReceipt;
+import model.entitites.PaymentReceiptCustomer;
+import model.entitites.PaymentReceiptStore;
 
 public class PaymentSystemService {
 	
-	private PaymentService  payment;
+	private GeneratorPaymentService generatorPaymentService;
 
-	public PaymentSystemService(PaymentService payment) {
-		this.payment = payment;
+	public PaymentSystemService(GeneratorPaymentService generatorPaymentService) {
+		this.generatorPaymentService = generatorPaymentService;
 	}
 
-	public PaymentService getPayment() {
-		return payment;
-	}
-
-	public void setPayment(PaymentService payment) {
-		this.payment = payment;
-	}
-	public void processReceipt(Document document, int installments) {
+	public void generateReceipt(DocumentReceipt document) {
+		double basicInstallment = document.getValue()/document.getInstallments();
+		double installmentValue = generatorPaymentService.authorizeCustomer(basicInstallment, document.getInstallments());
+		double totalValue = generatorPaymentService.authorizeCustomer(document.getValue(), document.getInstallments());
+		double amountReceived = generatorPaymentService.authorizeStore(totalValue,document.getInstallments() );
 		
+		document.getPaymentReceiptCustomer().add(new PaymentReceiptCustomer(installmentValue, totalValue));
+		document.getPaymentReceiptStore().add(new PaymentReceiptStore(amountReceived));
 	}
 }
